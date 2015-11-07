@@ -74,7 +74,7 @@ type ScrapeResponse map[Infohash]Swarm
 
 // ScrapeMiddleware is any function that operates on a Scrape before a response
 // has been written.
-type ScrapeMiddleware func(*ScrapeRequest, *ScrapeResponse) error
+type ScrapeMiddleware func(context.Context, *ScrapeRequest, *ScrapeResponse) error
 
 // TransportWriter abstracts the details of writing a response over a specific
 // protocol.
@@ -95,8 +95,9 @@ type Tracker struct {
 // middleware and writes a response.
 func (t *Tracker) ServeAnnounce(req AnnounceRequest, w TransportWriter) error {
 	var resp AnnounceResponse
+	var ctx context.Context
 	for _, middleware := range t.AnnounceMiddleware {
-		err := middleware(&req, &resp)
+		err := middleware(ctx, &req, &resp)
 		if IsClientError(err) {
 			w.WriteError(err)
 			return nil
@@ -115,8 +116,9 @@ func (t *Tracker) ServeAnnounce(req AnnounceRequest, w TransportWriter) error {
 // middleware and writes a response.
 func (t *Tracker) ServeScrape(req ScrapeRequest, w TransportWriter) error {
 	var resp ScrapeResponse
+	var ctx context.Context
 	for _, middleware := range t.ScrapeMiddleware {
-		err := middleware(&req, &resp)
+		err := middleware(ctx, &req, &resp)
 		if IsClientError(err) {
 			w.WriteError(err)
 			return nil
