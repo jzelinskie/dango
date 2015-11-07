@@ -9,6 +9,8 @@ package otoshi
 import (
 	"net"
 	"time"
+
+	"golang.org/x/net/context"
 )
 
 // Peer represents one instance of a BitTorrent client currently participating
