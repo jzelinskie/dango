@@ -74,7 +74,7 @@ type ScrapeResponse map[Infohash]Swarm
 
 // ScrapeMiddleware is any function that operates on a Scrape before a response
 // has been written.
-type ScrapeMiddleware func(*ScrapeRequest) error
+type ScrapeMiddleware func(*ScrapeRequest, *ScrapeResponse) error
 
 // TransportWriter abstracts the details of writing a response over a specific
 // protocol.
