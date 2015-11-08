@@ -42,8 +42,8 @@ type AnnounceIntervals struct{ AnnounceInterval, MinAnnounceInterval time.Durati
 // AnnounceRequest represents the transport-agnostic Announce request sent
 // from a BitTorrent client to a Tracker.
 type AnnounceRequest struct {
-	Peer
-	Infohash
+	Peer       Peer
+	Infohash   Infohash
 	URL        string
 	Event      string
 	Downloaded uint64
