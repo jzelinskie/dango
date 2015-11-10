@@ -167,13 +167,13 @@ func NewTracker(ah AnnounceHandler, sh ScrapeHandler) Tracker {
 		AnnounceHandler
 		ScrapeHandler
 	}{
-		ac,
-		sc,
+		AnnounceHandler: ah,
+		ScrapeHandler:   sh,
 	}
 }
 
 // Tracker represents a BitTorrent tracker.
 type Tracker interface {
 	ServeAnnounce(AnnounceResponseWriter, *AnnounceRequest)
-	ServeScrape(AnnounceResponseWriter, *ScrapeRequest)
+	ServeScrape(ScrapeResponseWriter, *ScrapeRequest)
 }
