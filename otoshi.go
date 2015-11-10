@@ -75,9 +75,12 @@ type AnnounceResponse struct {
 	Swarm
 }
 
-// AnnounceMiddleware is any function that operates on an Announce before a
-// response has been written.
-type AnnounceMiddleware func(context.Context, *AnnounceRequest, *AnnounceResponse) error
+// AnnounceHandler is a function that operates on an Announce before a response
+// has been written.
+type AnnounceHandler func(context.Context, *AnnounceRequest, *AnnounceResponse) error
+
+// AnnounceMiddleware enables the extension of an AnnounceHandler via a closure.
+type AnnounceMiddleware func(AnnounceHandler) AnnounceHandler
 
 // ScrapeRequest represents a transport-agnostic Scrape request sent from a
 // BitTorrent client to a tracker.
@@ -87,63 +90,78 @@ type ScrapeRequest []Infohash
 // a tracker to a BitTorrent client.
 type ScrapeResponse map[Infohash]Swarm
 
-// ScrapeMiddleware is any function that operates on a Scrape before a response
+// ScrapeHandler is a function that operates on a Scrape before a response
 // has been written.
-type ScrapeMiddleware func(context.Context, *ScrapeRequest, *ScrapeResponse) error
+type ScrapeHandler func(context.Context, *ScrapeRequest, *ScrapeResponse) error
 
-// TransportWriter abstracts the details of writing a response over a specific
-// protocol.
-type TransportWriter interface {
-	WriteError(error) error
-	WriteAnnounceResponse(*AnnounceRequest, *AnnounceResponse) error
-	WriteScrapeResponse(*ScrapeRequest, *ScrapeResponse) error
+// ScrapeMiddleware enables the extension of an ScrapeHandler via a closure.
+type ScrapeMiddleware func(ScrapeHandler) ScrapeHandler
+
+// AnnounceChain represents a composition of AnnounceMiddleware.
+type AnnounceChain struct{ mw []AnnounceMiddleware }
+
+// Use creates a new AnnounceChain by appending the provided middleware to the
+// current chain.
+func (c AnnounceChain) Use(mw ...AnnounceMiddleware) (nc AnnounceChain) {
+	nc.mw = make([]AnnounceMiddleware, len(c.mw)+len(mw))
+	copy(nc.mw[:len(c.mw)], c.mw)
+	copy(nc.mw[len(c.mw):], mw)
+	return
 }
 
-// Tracker represents a BitTorrent tracker as the composition of
-// AnnounceMiddleware and ScrapeMiddleware.
-type Tracker struct {
-	AnnnounceMiddleware []AnnounceMiddleware
-	ScrapeMiddleWare    []ScrapeMiddleware
+// Then creates an AnnounceHandler that is the composition of the chain.
+func (c AnnounceChain) Then(final AnnounceHandler) AnnounceHandler {
+	for i := len(c.mw) - 1; i >= 0; i-- {
+		final = c.mw[i](final)
+	}
+	return final
 }
 
-// ServeAnnounce runs a parsed AnnounceRequest through all of the tracker
-// middleware and writes a response.
-func (t *Tracker) ServeAnnounce(req AnnounceRequest, w TransportWriter) error {
-	var resp AnnounceResponse
-	var ctx context.Context
-	for _, middleware := range t.AnnounceMiddleware {
-		err := middleware(ctx, &req, &resp)
-		if IsClientError(err) {
-			w.WriteError(err)
-			return nil
-		} else if err != nil {
-			return err
-		}
-	}
+// ScrapeChain represents a composition of ScrapeMiddleware.
+type ScrapeChain struct{ mw []ScrapeMiddleware }
 
-	err = w.WriteAnnounceResponse(&req, &resp)
-	if err != nil {
-		return err
+// Use creates a new ScrapeChain by appending the provided middleware to the
+// current chain.
+func (c ScrapeChain) Use(mw ...ScrapeMiddleware) (nc ScrapeChain) {
+	nc.mw = make([]ScrapeMiddleware, len(c.mw)+len(mw))
+	copy(nc.mw[:len(c.mw)], c.mw)
+	copy(nc.mw[len(c.mw):], mw)
+	return
+}
+
+// Then creates an ScrapeHandler that is the composition of the chain.
+func (c ScrapeChain) Then(final ScrapeHandler) ScrapeHandler {
+	for i := len(c.mw) - 1; i >= 0; i-- {
+		final = c.mw[i](final)
+	}
+	return final
+}
+
+// ServeAnnounce creates an empty context and calls itself.
+func (h AnnounceHandler) ServeAnnounce(req *AnnounceRequest, resp *AnnounceResponse) {
+	ctx := context.TODO()
+	h(ctx, req, resp)
+}
+
+// ServeScrape creates an empty context and calls itself.
+func (h ScrapeHandler) ServeScrape(req *ScrapeRequest, resp *ScrapeResponse) {
+	ctx := context.TODO()
+	h(ctx, req, resp)
+}
+
+// NewTracker returns a Tracker given an AnnounceHandler and a ScrapeHandler.
+func NewTracker(ah AnnounceHandler, sh ScrapeHandler) Tracker {
+	return struct {
+		AnnounceHandler
+		ScrapeHandler
+	}{
+		ac,
+		sc,
 	}
 }
 
-// ServeScrape runs a parsed ScrapeRequest through all of the tracker
-// middleware and writes a response.
-func (t *Tracker) ServeScrape(req ScrapeRequest, w TransportWriter) error {
-	var resp ScrapeResponse
-	var ctx context.Context
-	for _, middleware := range t.ScrapeMiddleware {
-		err := middleware(ctx, &req, &resp)
-		if IsClientError(err) {
-			w.WriteError(err)
-			return nil
-		} else if err != nil {
-			return err
-		}
-	}
-
-	err = w.WriteScrapeResponse(&req, &resp)
-	if err != nil {
-		return err
-	}
+// Tracker represents a BitTorrent tracker.
+type Tracker interface {
+	ServeAnnounce(*AnnounceRequest, *AnnounceResponse)
+	ServeScrape(*AnnounceRequest, *AnnounceResponse)
 }
