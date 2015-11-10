@@ -28,6 +28,21 @@ type PeerIterator interface {
 	Peer() Peer
 }
 
+// Event represents an event done by a BitTorrent client.
+type Event string
+
+const (
+	// Started is the event sent by a BitTorrent client when it joins a Swarm.
+	Started Event = "started"
+
+	// Stopped is the event sent by a BitTorrent client when it leaves a Swarm.
+	Stopped Event = "stopped"
+
+	// Completed is the event sent by a BitTorrent client when it finishes
+	// downloading all of the required chunks.
+	Completed Event = "completed"
+)
+
 // Infohash is the hash of a set of files that are to be downloaded by an
 // individual Swarm.
 type Infohash string
@@ -44,8 +59,8 @@ type AnnounceIntervals struct{ AnnounceInterval, MinAnnounceInterval time.Durati
 type AnnounceRequest struct {
 	Peer       Peer
 	Infohash   Infohash
+	Event      Event
 	URL        string
-	Event      string
 	Downloaded uint64
 	Uploaded   uint64
 	Compact    bool
