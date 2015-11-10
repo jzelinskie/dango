@@ -83,7 +83,7 @@ type AnnounceResponseWriter interface {
 
 // AnnounceHandler is a function that operates on an Announce before a response
 // has been written.
-type AnnounceHandler func(context.Context, AnnounceResponseWriter, *AnnounceRequest) error
+type AnnounceHandler func(context.Context, AnnounceResponseWriter, *AnnounceRequest) (context.Context, error)
 
 // AnnounceMiddleware enables the extension of an AnnounceHandler via a closure.
 type AnnounceMiddleware func(AnnounceHandler) AnnounceHandler
@@ -104,7 +104,7 @@ type ScrapeResponseWriter interface {
 
 // ScrapeHandler is a function that operates on a Scrape before a response
 // has been written.
-type ScrapeHandler func(context.Context, ScrapeResponseWriter, *ScrapeRequest) error
+type ScrapeHandler func(context.Context, ScrapeResponseWriter, *ScrapeRequest) (context.Context, error)
 
 // ScrapeMiddleware enables the extension of an ScrapeHandler via a closure.
 type ScrapeMiddleware func(ScrapeHandler) ScrapeHandler
@@ -151,13 +151,13 @@ func (c ScrapeChain) Finalize(final ScrapeHandler) ScrapeHandler {
 
 // ServeAnnounce creates an empty context and calls itself.
 func (h AnnounceHandler) ServeAnnounce(w AnnounceResponseWriter, r *AnnounceRequest) {
-	ctx := context.TODO()
+	ctx := context.Background()
 	h(ctx, w, r)
 }
 
 // ServeScrape creates an empty context and calls itself.
 func (h ScrapeHandler) ServeScrape(w ScrapeResponseWriter, r *ScrapeRequest) {
-	ctx := context.TODO()
+	ctx := context.Background()
 	h(ctx, w, r)
 }
 
