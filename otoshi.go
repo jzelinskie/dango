@@ -83,7 +83,7 @@ type AnnounceResponseWriter interface {
 
 // AnnounceHandler is a function that operates on an Announce before a response
 // has been written.
-type AnnounceHandler func(context.Context, *AnnounceRequest, AnnounceResponseWriter) error
+type AnnounceHandler func(context.Context, AnnounceResponseWriter, *AnnounceRequest) error
 
 // AnnounceMiddleware enables the extension of an AnnounceHandler via a closure.
 type AnnounceMiddleware func(AnnounceHandler) AnnounceHandler
@@ -104,7 +104,7 @@ type ScrapeResponseWriter interface {
 
 // ScrapeHandler is a function that operates on a Scrape before a response
 // has been written.
-type ScrapeHandler func(context.Context, *ScrapeRequest, ScrapeResponseWriter) error
+type ScrapeHandler func(context.Context, ScrapeResponseWriter, *ScrapeRequest) error
 
 // ScrapeMiddleware enables the extension of an ScrapeHandler via a closure.
 type ScrapeMiddleware func(ScrapeHandler) ScrapeHandler
@@ -150,15 +150,15 @@ func (c ScrapeChain) Finalize(final ScrapeHandler) ScrapeHandler {
 }
 
 // ServeAnnounce creates an empty context and calls itself.
-func (h AnnounceHandler) ServeAnnounce(req *AnnounceRequest, resp AnnounceResponseWriter) {
+func (h AnnounceHandler) ServeAnnounce(w AnnounceResponseWriter, r *AnnounceRequest) {
 	ctx := context.TODO()
-	h(ctx, req, resp)
+	h(ctx, w, r)
 }
 
 // ServeScrape creates an empty context and calls itself.
-func (h ScrapeHandler) ServeScrape(req *ScrapeRequest, resp ScrapeResponseWriter) {
+func (h ScrapeHandler) ServeScrape(w ScrapeResponseWriter, r *ScrapeRequest) {
 	ctx := context.TODO()
-	h(ctx, req, resp)
+	h(ctx, w, r)
 }
 
 // NewTracker returns a Tracker given an AnnounceHandler and a ScrapeHandler.
@@ -174,6 +174,6 @@ func NewTracker(ah AnnounceHandler, sh ScrapeHandler) Tracker {
 
 // Tracker represents a BitTorrent tracker.
 type Tracker interface {
-	ServeAnnounce(*AnnounceRequest, AnnounceResponseWriter)
-	ServeScrape(*ScrapeRequest, ScrapeResponseWriter)
+	ServeAnnounce(AnnounceResponseWriter, *AnnounceRequest)
+	ServeScrape(AnnounceResponseWriter, *ScrapeRequest)
 }
