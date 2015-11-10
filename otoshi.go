@@ -112,17 +112,17 @@ type ScrapeMiddleware func(ScrapeHandler) ScrapeHandler
 // AnnounceChain represents a composition of AnnounceMiddleware.
 type AnnounceChain struct{ mw []AnnounceMiddleware }
 
-// Use creates a new AnnounceChain by appending the provided middleware to the
-// current chain.
-func (c AnnounceChain) Use(mw ...AnnounceMiddleware) (nc AnnounceChain) {
+// Append creates a new AnnounceChain by appending the provided middleware to
+// the current chain.
+func (c AnnounceChain) Append(mw ...AnnounceMiddleware) (nc AnnounceChain) {
 	nc.mw = make([]AnnounceMiddleware, len(c.mw)+len(mw))
 	copy(nc.mw[:len(c.mw)], c.mw)
 	copy(nc.mw[len(c.mw):], mw)
 	return
 }
 
-// Then creates an AnnounceHandler that is the composition of the chain.
-func (c AnnounceChain) Then(final AnnounceHandler) AnnounceHandler {
+// Finalize creates an AnnounceHandler that is the composition of the chain.
+func (c AnnounceChain) Finalize(final AnnounceHandler) AnnounceHandler {
 	for i := len(c.mw) - 1; i >= 0; i-- {
 		final = c.mw[i](final)
 	}
@@ -132,17 +132,17 @@ func (c AnnounceChain) Then(final AnnounceHandler) AnnounceHandler {
 // ScrapeChain represents a composition of ScrapeMiddleware.
 type ScrapeChain struct{ mw []ScrapeMiddleware }
 
-// Use creates a new ScrapeChain by appending the provided middleware to the
+// Append creates a new ScrapeChain by appending the provided middleware to the
 // current chain.
-func (c ScrapeChain) Use(mw ...ScrapeMiddleware) (nc ScrapeChain) {
+func (c ScrapeChain) Append(mw ...ScrapeMiddleware) (nc ScrapeChain) {
 	nc.mw = make([]ScrapeMiddleware, len(c.mw)+len(mw))
 	copy(nc.mw[:len(c.mw)], c.mw)
 	copy(nc.mw[len(c.mw):], mw)
 	return
 }
 
-// Then creates an ScrapeHandler that is the composition of the chain.
-func (c ScrapeChain) Then(final ScrapeHandler) ScrapeHandler {
+// Finalize creates an ScrapeHandler that is the composition of the chain.
+func (c ScrapeChain) Finalize(final ScrapeHandler) ScrapeHandler {
 	for i := len(c.mw) - 1; i >= 0; i-- {
 		final = c.mw[i](final)
 	}
