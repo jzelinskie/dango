@@ -11,20 +11,8 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/jzelinskie/otoshi"
+	"github.com/jzelinskie/otoshi/mock"
 )
-
-type mockAnnounceResponseWriter struct {
-	resp *otoshi.AnnounceResponse
-	err  error
-}
-
-func (w *mockAnnounceResponseWriter) WriteAnnounceResponse(r *otoshi.AnnounceResponse) {
-	w.resp = r
-}
-
-func (w *mockAnnounceResponseWriter) WriteError(err error) {
-	w.err = err
-}
 
 func TestAnnounceTimer(t *testing.T) {
 	handler := AnnounceTimer(func(ctx context.Context, w otoshi.AnnounceResponseWriter, r *otoshi.AnnounceRequest) (context.Context, error) {
@@ -33,7 +21,7 @@ func TestAnnounceTimer(t *testing.T) {
 	})
 
 	ctx := context.Background()
-	ctx, _ = handler(ctx, &mockAnnounceResponseWriter{}, &otoshi.AnnounceRequest{})
+	ctx, _ = handler(ctx, &mock.AnnounceResponseWriter{}, &otoshi.AnnounceRequest{})
 	duration := ctx.Value("time").(time.Duration)
 	if duration < time.Second {
 		t.Errorf("failed to properly time 1 second handler")
