@@ -75,9 +75,15 @@ type AnnounceResponse struct {
 	Swarm
 }
 
+// AnnounceResponseWriter is used by an AnnounceHandler to construct a response.
+type AnnounceResponseWriter interface {
+	WriteAnnounceResponse(*AnnounceResponse)
+	WriteError(error)
+}
+
 // AnnounceHandler is a function that operates on an Announce before a response
 // has been written.
-type AnnounceHandler func(context.Context, *AnnounceRequest, *AnnounceResponse) error
+type AnnounceHandler func(context.Context, *AnnounceRequest, AnnounceResponseWriter) error
 
 // AnnounceMiddleware enables the extension of an AnnounceHandler via a closure.
 type AnnounceMiddleware func(AnnounceHandler) AnnounceHandler
@@ -90,9 +96,15 @@ type ScrapeRequest []Infohash
 // a tracker to a BitTorrent client.
 type ScrapeResponse map[Infohash]Swarm
 
+// ScrapeResponseWriter is used by a ScrapeHandler to construct a response.
+type ScrapeResponseWriter interface {
+	WriteScrapeResponse(*ScrapeResponse)
+	WriteError(error)
+}
+
 // ScrapeHandler is a function that operates on a Scrape before a response
 // has been written.
-type ScrapeHandler func(context.Context, *ScrapeRequest, *ScrapeResponse) error
+type ScrapeHandler func(context.Context, *ScrapeRequest, ScrapeResponseWriter) error
 
 // ScrapeMiddleware enables the extension of an ScrapeHandler via a closure.
 type ScrapeMiddleware func(ScrapeHandler) ScrapeHandler
@@ -138,13 +150,13 @@ func (c ScrapeChain) Then(final ScrapeHandler) ScrapeHandler {
 }
 
 // ServeAnnounce creates an empty context and calls itself.
-func (h AnnounceHandler) ServeAnnounce(req *AnnounceRequest, resp *AnnounceResponse) {
+func (h AnnounceHandler) ServeAnnounce(req *AnnounceRequest, resp AnnounceResponseWriter) {
 	ctx := context.TODO()
 	h(ctx, req, resp)
 }
 
 // ServeScrape creates an empty context and calls itself.
-func (h ScrapeHandler) ServeScrape(req *ScrapeRequest, resp *ScrapeResponse) {
+func (h ScrapeHandler) ServeScrape(req *ScrapeRequest, resp ScrapeResponseWriter) {
 	ctx := context.TODO()
 	h(ctx, req, resp)
 }
@@ -162,6 +174,6 @@ func NewTracker(ah AnnounceHandler, sh ScrapeHandler) Tracker {
 
 // Tracker represents a BitTorrent tracker.
 type Tracker interface {
-	ServeAnnounce(*AnnounceRequest, *AnnounceResponse)
-	ServeScrape(*AnnounceRequest, *AnnounceResponse)
+	ServeAnnounce(*AnnounceRequest, AnnounceResponseWriter)
+	ServeScrape(*ScrapeRequest, ScrapeResponseWriter)
 }
