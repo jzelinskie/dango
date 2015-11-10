@@ -43,8 +43,8 @@ const (
 	Completed Event = "completed"
 )
 
-// Infohash is the hash of a set of files that are to be downloaded by an
-// individual Swarm.
+// Infohash is the hash of a set of files that are to be downloaded by a client
+// participating in a Swarm.
 type Infohash string
 
 // Swarm represents the metadata of collection of Peers sharing a torrent.

@@ -2,6 +2,7 @@
 // Use of this source code is governed by the BSD 2-Clause license,
 // which can be found in the LICENSE file.
 
+// Package common implements common AnnounceMiddleware and ScrapeMiddleware.
 package common
 
 import (
@@ -12,6 +13,8 @@ import (
 	"github.com/jzelinskie/otoshi"
 )
 
+// AnnounceTimer times the handling of Announces and returns a context with the
+// key "time" set to a time.Duration.
 func AnnounceTimer(next otoshi.AnnounceHandler) otoshi.AnnounceHandler {
 	return func(ctx context.Context, w otoshi.AnnounceResponseWriter, r *otoshi.AnnounceRequest) (context.Context, error) {
 		var err error
