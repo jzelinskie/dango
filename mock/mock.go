@@ -7,7 +7,8 @@ package mock
 
 import "github.com/jzelinskie/otoshi"
 
-// AnnounceResponseWriter implements an otoshi.AnnounceResponseWriter.
+// AnnounceResponseWriter implements an otoshi.AnnounceResponseWriter in the
+// simplest possible way.
 type AnnounceResponseWriter struct {
 	Resp *otoshi.AnnounceResponse
 	Err  error
@@ -21,5 +22,23 @@ func (w *AnnounceResponseWriter) WriteAnnounceResponse(r *otoshi.AnnounceRespons
 
 // WriteError saves the provided error to the Err field of the writer.
 func (w *AnnounceResponseWriter) WriteError(err error) {
+	w.Err = err
+}
+
+// ScrapeResponseWriter implements an otoshi.ScrapeResponseWriter in the
+// simplest possible way.
+type ScrapeResponseWriter struct {
+	Resp *otoshi.ScrapeResponse
+	Err  error
+}
+
+// WriteScrapeResponse saves the provided response to the Resp field of the
+// writer.
+func (w *ScrapeResponseWriter) WriteScrapeResponse(r *otoshi.ScrapeResponse) {
+	w.Resp = r
+}
+
+// WriteError saves the provided error to the Err field of the writer.
+func (w *ScrapeResponseWriter) WriteError(err error) {
 	w.Err = err
 }
