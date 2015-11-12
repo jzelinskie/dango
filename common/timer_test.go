@@ -27,3 +27,17 @@ func TestAnnounceTimer(t *testing.T) {
 		t.Errorf("failed to properly time 1 second handler")
 	}
 }
+
+func TestScrapeTimer(t *testing.T) {
+	handler := ScrapeTimer(func(ctx context.Context, w otoshi.ScrapeResponseWriter, r *otoshi.ScrapeRequest) (context.Context, error) {
+		time.Sleep(time.Second)
+		return ctx, nil
+	})
+
+	ctx := context.Background()
+	ctx, _ = handler(ctx, &mock.ScrapeResponseWriter{}, &otoshi.ScrapeRequest{})
+	duration := ctx.Value("time").(time.Duration)
+	if duration < time.Second {
+		t.Errorf("failed to properly time 1 second handler")
+	}
+}

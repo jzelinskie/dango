@@ -25,3 +25,16 @@ func AnnounceTimer(next otoshi.AnnounceHandler) otoshi.AnnounceHandler {
 		return ctx, err
 	}
 }
+
+// ScrapeTimer times the handling of Scrapes and returns a context with the
+// key "time" set to a time.Duration.
+func ScrapeTimer(next otoshi.ScrapeHandler) otoshi.ScrapeHandler {
+	return func(ctx context.Context, w otoshi.ScrapeResponseWriter, r *otoshi.ScrapeRequest) (context.Context, error) {
+		var err error
+		start := time.Now()
+		ctx, err = next(ctx, w, r)
+		end := time.Now()
+		ctx = context.WithValue(ctx, "time", end.Sub(start))
+		return ctx, err
+	}
+}
