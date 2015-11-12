@@ -73,6 +73,7 @@ type AnnounceResponse struct {
 	IPv4Peers, IPv6Peers PeerIterator
 	AnnounceIntervals
 	Swarm
+	Compact bool
 }
 
 // AnnounceResponseWriter is used by an AnnounceHandler to construct a response.
