@@ -10,13 +10,13 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/jzelinskie/otoshi"
+	"github.com/jzelinskie/dango"
 )
 
 // AnnounceTimer times the handling of Announces and returns a context with the
 // key "time" set to a time.Duration.
-func AnnounceTimer(next otoshi.AnnounceHandler) otoshi.AnnounceHandler {
-	return func(ctx context.Context, w otoshi.AnnounceResponseWriter, r *otoshi.AnnounceRequest) (context.Context, error) {
+func AnnounceTimer(next dango.AnnounceHandler) dango.AnnounceHandler {
+	return func(ctx context.Context, w dango.AnnounceResponseWriter, r *dango.AnnounceRequest) (context.Context, error) {
 		var err error
 		start := time.Now()
 		ctx, err = next(ctx, w, r)
@@ -28,8 +28,8 @@ func AnnounceTimer(next otoshi.AnnounceHandler) otoshi.AnnounceHandler {
 
 // ScrapeTimer times the handling of Scrapes and returns a context with the
 // key "time" set to a time.Duration.
-func ScrapeTimer(next otoshi.ScrapeHandler) otoshi.ScrapeHandler {
-	return func(ctx context.Context, w otoshi.ScrapeResponseWriter, r *otoshi.ScrapeRequest) (context.Context, error) {
+func ScrapeTimer(next dango.ScrapeHandler) dango.ScrapeHandler {
+	return func(ctx context.Context, w dango.ScrapeResponseWriter, r *dango.ScrapeRequest) (context.Context, error) {
 		var err error
 		start := time.Now()
 		ctx, err = next(ctx, w, r)

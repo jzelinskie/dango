@@ -2,21 +2,21 @@
 // Use of this source code is governed by the BSD 2-Clause license,
 // which can be found in the LICENSE file.
 
-// Package mock implements mocks useful for testing otoshi middleware.
+// Package mock implements mocks useful for testing dango middleware.
 package mock
 
-import "github.com/jzelinskie/otoshi"
+import "github.com/jzelinskie/dango"
 
-// AnnounceResponseWriter implements an otoshi.AnnounceResponseWriter in the
+// AnnounceResponseWriter implements an dango.AnnounceResponseWriter in the
 // simplest possible way.
 type AnnounceResponseWriter struct {
-	Resp *otoshi.AnnounceResponse
+	Resp *dango.AnnounceResponse
 	Err  error
 }
 
 // WriteAnnounceResponse saves the provided response to the Resp field of the
 // writer.
-func (w *AnnounceResponseWriter) WriteAnnounceResponse(r *otoshi.AnnounceResponse) {
+func (w *AnnounceResponseWriter) WriteAnnounceResponse(r *dango.AnnounceResponse) {
 	w.Resp = r
 }
 
@@ -25,16 +25,16 @@ func (w *AnnounceResponseWriter) WriteError(err error) {
 	w.Err = err
 }
 
-// ScrapeResponseWriter implements an otoshi.ScrapeResponseWriter in the
+// ScrapeResponseWriter implements an dango.ScrapeResponseWriter in the
 // simplest possible way.
 type ScrapeResponseWriter struct {
-	Resp *otoshi.ScrapeResponse
+	Resp *dango.ScrapeResponse
 	Err  error
 }
 
 // WriteScrapeResponse saves the provided response to the Resp field of the
 // writer.
-func (w *ScrapeResponseWriter) WriteScrapeResponse(r *otoshi.ScrapeResponse) {
+func (w *ScrapeResponseWriter) WriteScrapeResponse(r *dango.ScrapeResponse) {
 	w.Resp = r
 }
 
