@@ -1,8 +1,6 @@
-<p align="center">
-  <img src="https://i.imgur.com/svvnsus.jpg" alt="dango" />
-</p>
-
 # dango
+
+<p align="center"><img src="https://i.imgur.com/svvnsus.jpg" alt="dango" /></p>
 
 [![GoDoc](https://godoc.org/github.com/jzelinskie/dango?status.svg)](https://godoc.org/github.com/jzelinskie/dango)
 [![License](https://img.shields.io/badge/license-BSD-blue.svg)](https://en.wikipedia.org/wiki/BSD_licenses#2-clause_license_.28.22Simplified_BSD_License.22_or_.22FreeBSD_License.22.29)
