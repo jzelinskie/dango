@@ -29,19 +29,40 @@ type PeerIterator interface {
 }
 
 // Event represents an event done by a BitTorrent client.
-type Event string
+type Event uint16
 
 const (
-	// Started is the event sent by a BitTorrent client when it joins a Swarm.
-	Started Event = "started"
-
-	// Stopped is the event sent by a BitTorrent client when it leaves a Swarm.
-	Stopped Event = "stopped"
+	// None indicates that no specific event was sent by a BitTorrent client.
+	None Event = iota
 
 	// Completed is the event sent by a BitTorrent client when it finishes
 	// downloading all of the required chunks.
-	Completed Event = "completed"
+	Completed
+
+	// Started is the event sent by a BitTorrent client when it joins a Swarm.
+	Started
+
+	// Stopped is the event sent by a BitTorrent client when it leaves a Swarm.
+	Stopped
 )
+
+func (e Event) String() string {
+	name, found := eventNames[e]
+	if !found {
+		return "unknown"
+	}
+	return name
+}
+
+var eventNames map[Event]string
+
+func init() {
+	eventNames = make(map[Event]string)
+	eventNames[None] = "none"
+	eventNames[Completed] = "completed"
+	eventNames[Started] = "started"
+	eventNames[Stopped] = "stopped"
+}
 
 // Infohash is the hash of a set of files that are to be downloaded by a client
 // participating in a Swarm.
