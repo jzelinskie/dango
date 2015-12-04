@@ -31,6 +31,10 @@ type PeerIterator interface {
 type Event string
 
 const (
+	// None is the event when a BitTorrent client announces due to time lapsed
+	// since the previous announce.
+	None Event = ""
+
 	// Started is the event sent by a BitTorrent client when it joins a Swarm.
 	Started Event = "started"
 
