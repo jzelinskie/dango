@@ -4,6 +4,7 @@
 
 [![GoDoc](https://godoc.org/github.com/jzelinskie/dango?status.svg)](https://godoc.org/github.com/jzelinskie/dango)
 [![License](https://img.shields.io/badge/license-BSD-blue.svg)](https://en.wikipedia.org/wiki/BSD_licenses#2-clause_license_.28.22Simplified_BSD_License.22_or_.22FreeBSD_License.22.29)
+[![Build Status](https://api.travis-ci.org/jzelinskie/dango.svg?branch=master)](https://travis-ci.org/jzelinskie/dango)
 
 **dango** (named after the Japanese food *mitarashi dango*) is an experimental framework for building BitTorrent trackers with customizable behavior.
 Conceptually, dango is modeled after the layers of middleware often seen implementing reusable behavior in HTTP servers; a tracker is simply the composition of two lists of middleware: one for Announces and one for Scrapes.
