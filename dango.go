@@ -19,7 +19,6 @@ type Peer struct {
 	ID   string
 	IP   net.IP
 	Port uint32
-	Left uint64
 }
 
 // PeerIterator represents a stream of Peers.
@@ -63,6 +62,7 @@ type AnnounceRequest struct {
 	URL        string
 	Downloaded uint64
 	Uploaded   uint64
+	Left       uint64
 	Compact    bool
 	NumWant    uint16
 }
