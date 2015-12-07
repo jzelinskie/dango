@@ -82,8 +82,8 @@ type AnnounceResponse struct {
 
 // AnnounceResponseWriter is used by an AnnounceHandler to construct a response.
 type AnnounceResponseWriter interface {
-	WriteAnnounceResponse(*AnnounceResponse)
-	WriteError(error)
+	WriteAnnounceResponse(*AnnounceResponse) error
+	WriteError(error) error
 }
 
 // AnnounceHandler is a function that operates on an Announce before a response
@@ -103,8 +103,8 @@ type ScrapeResponse map[Infohash]Swarm
 
 // ScrapeResponseWriter is used by a ScrapeHandler to construct a response.
 type ScrapeResponseWriter interface {
-	WriteScrapeResponse(*ScrapeResponse)
-	WriteError(error)
+	WriteScrapeResponse(*ScrapeResponse) error
+	WriteError(error) error
 }
 
 // ScrapeHandler is a function that operates on a Scrape before a response
