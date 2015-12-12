@@ -7,18 +7,31 @@
 package dango
 
 import (
+	"errors"
 	"net"
 	"time"
 
 	"golang.org/x/net/context"
 )
 
+var (
+	// ErrMalformedRequest is returned when a request does not contain the
+	// required parameters needed to create a model.
+	ErrMalformedRequest = errors.New("malformed request")
+)
+
 // Peer represents one instance of a BitTorrent client currently participating
 // in a Swarm.
-type Peer struct {
-	ID   string
-	IP   net.IP
-	Port uint32
+type Peer interface {
+	IP() net.IP
+	Port() uint32
+}
+
+// PrivatePeer represents one instance of a BitTorrent client currently
+// participating in a private tracker's Swarm.
+type PrivatePeer interface {
+	ID() string
+	Peer
 }
 
 // PeerIterator represents a stream of Peers.
@@ -28,23 +41,61 @@ type PeerIterator interface {
 }
 
 // Event represents an event done by a BitTorrent client.
-type Event string
+type Event uint8
 
 const (
 	// None is the event when a BitTorrent client announces due to time lapsed
 	// since the previous announce.
-	None Event = ""
+	None Event = iota
 
 	// Started is the event sent by a BitTorrent client when it joins a Swarm.
-	Started Event = "started"
+	Started
 
 	// Stopped is the event sent by a BitTorrent client when it leaves a Swarm.
-	Stopped Event = "stopped"
+	Stopped
 
 	// Completed is the event sent by a BitTorrent client when it finishes
 	// downloading all of the required chunks.
-	Completed Event = "completed"
+	Completed
 )
+
+var (
+	eventToString map[Event]string
+	stringToEvent map[string]Event
+)
+
+func init() {
+	eventToString = make(map[Event]string)
+	eventToString[None] = "none"
+	eventToString[Started] = "started"
+	eventToString[Stopped] = "stopped"
+	eventToString[Completed] = "completed"
+	stringToEvent = make(map[string]Event)
+
+	stringToEvent[""] = None
+	stringToEvent["none"] = None
+	stringToEvent["started"] = Started
+	stringToEvent["stopped"] = Stopped
+	stringToEvent["completed"] = Completed
+}
+
+// NewEvent returns the proper Event given a string.
+func NewEvent(event string) (Event, error) {
+	if e, ok := stringToEvent[event]; ok {
+		return e, nil
+	}
+
+	return None, errors.New("dango: unknown event")
+}
+
+// String implements Stringer for an event.
+func (e Event) String() string {
+	if name, ok := eventToString[e]; ok {
+		return name
+	}
+
+	panic("dango: Event has no associated name")
+}
 
 // Infohash is the hash of a set of files that are to be downloaded by a client
 // participating in a Swarm.
@@ -59,57 +110,76 @@ type AnnounceIntervals struct{ AnnounceInterval, MinAnnounceInterval time.Durati
 
 // AnnounceRequest represents the transport-agnostic Announce request sent
 // from a BitTorrent client to a Tracker.
-type AnnounceRequest struct {
-	Peer       Peer
-	Infohash   Infohash
-	Event      Event
-	URL        string
-	Downloaded uint64
-	Uploaded   uint64
-	Left       uint64
-	Compact    bool
-	NumWant    uint16
+type AnnounceRequest interface {
+	Peer() Peer
+	Infohash() Infohash
+	Event() Event
+	URL() string
+	Downloaded() uint64
+	Uploaded() uint64
+	Left() uint64
+	Compact() bool
+	NumWant() uint16
+}
+
+// PrivateAnnounceRequest represents an Announce request with extra metadata
+// used for private BitTorrent trackers.
+type PrivateAnnounceRequest interface {
+	Passkey() string
+	AnnounceRequest
 }
 
 // AnnounceResponse represents the transport-agnostic Announce response sent
 // from a Tracker to a BitTorrent client.
-type AnnounceResponse struct {
-	IPv4Peers, IPv6Peers PeerIterator
-	AnnounceIntervals
-	Swarm
-	Compact bool
+type AnnounceResponse interface {
+	IPv4Peers() PeerIterator
+	IPv6Peers() PeerIterator
+	AnnounceIntervals() AnnounceIntervals
+	Swarm() Swarm
+	Compact() bool
 }
 
 // AnnounceResponseWriter is used by an AnnounceHandler to construct a response.
 type AnnounceResponseWriter interface {
-	WriteAnnounceResponse(*AnnounceResponse) error
+	WriteAnnounceResponse(AnnounceResponse) error
 	WriteError(error) error
 }
 
 // AnnounceHandler is a function that operates on an Announce before a response
 // has been written.
-type AnnounceHandler func(context.Context, AnnounceResponseWriter, *AnnounceRequest) (context.Context, error)
+type AnnounceHandler func(context.Context, AnnounceResponseWriter, AnnounceRequest) (context.Context, error)
 
 // AnnounceMiddleware enables the extension of an AnnounceHandler via a closure.
 type AnnounceMiddleware func(AnnounceHandler) AnnounceHandler
 
 // ScrapeRequest represents a transport-agnostic Scrape request sent from a
 // BitTorrent client to a tracker.
-type ScrapeRequest []Infohash
+type ScrapeRequest interface {
+	Infohashes() []Infohash
+}
+
+// PrivateScrapeRequest represents a Scrape request with extra metadata used
+// for private BitTorrent trackers.
+type PrivateScrapeRequest interface {
+	Passkey() string
+	ScrapeRequest
+}
 
 // ScrapeResponse represents the transport-agnostic Scrape response sent from
 // a tracker to a BitTorrent client.
-type ScrapeResponse map[Infohash]Swarm
+type ScrapeResponse interface {
+	Files() map[Infohash]Swarm
+}
 
 // ScrapeResponseWriter is used by a ScrapeHandler to construct a response.
 type ScrapeResponseWriter interface {
-	WriteScrapeResponse(*ScrapeResponse) error
+	WriteScrapeResponse(ScrapeResponse) error
 	WriteError(error) error
 }
 
 // ScrapeHandler is a function that operates on a Scrape before a response
 // has been written.
-type ScrapeHandler func(context.Context, ScrapeResponseWriter, *ScrapeRequest) (context.Context, error)
+type ScrapeHandler func(context.Context, ScrapeResponseWriter, ScrapeRequest) (context.Context, error)
 
 // ScrapeMiddleware enables the extension of an ScrapeHandler via a closure.
 type ScrapeMiddleware func(ScrapeHandler) ScrapeHandler
@@ -155,13 +225,13 @@ func (c ScrapeChain) Finalize(final ScrapeHandler) ScrapeHandler {
 }
 
 // ServeAnnounce creates an empty context and calls itself.
-func (h AnnounceHandler) ServeAnnounce(w AnnounceResponseWriter, r *AnnounceRequest) {
+func (h AnnounceHandler) ServeAnnounce(w AnnounceResponseWriter, r AnnounceRequest) {
 	ctx := context.Background()
 	h(ctx, w, r)
 }
 
 // ServeScrape creates an empty context and calls itself.
-func (h ScrapeHandler) ServeScrape(w ScrapeResponseWriter, r *ScrapeRequest) {
+func (h ScrapeHandler) ServeScrape(w ScrapeResponseWriter, r ScrapeRequest) {
 	ctx := context.Background()
 	h(ctx, w, r)
 }
@@ -179,6 +249,6 @@ func NewTracker(ah AnnounceHandler, sh ScrapeHandler) Tracker {
 
 // Tracker represents a BitTorrent tracker.
 type Tracker interface {
-	ServeAnnounce(AnnounceResponseWriter, *AnnounceRequest)
-	ServeScrape(ScrapeResponseWriter, *ScrapeRequest)
+	ServeAnnounce(AnnounceResponseWriter, AnnounceRequest)
+	ServeScrape(ScrapeResponseWriter, ScrapeRequest)
 }

@@ -10,35 +10,39 @@ import "github.com/jzelinskie/dango"
 // AnnounceResponseWriter implements an dango.AnnounceResponseWriter in the
 // simplest possible way.
 type AnnounceResponseWriter struct {
-	Resp *dango.AnnounceResponse
+	Resp dango.AnnounceResponse
 	Err  error
 }
 
 // WriteAnnounceResponse saves the provided response to the Resp field of the
 // writer.
-func (w *AnnounceResponseWriter) WriteAnnounceResponse(r *dango.AnnounceResponse) {
+func (w *AnnounceResponseWriter) WriteAnnounceResponse(r dango.AnnounceResponse) error {
 	w.Resp = r
+	return nil
 }
 
 // WriteError saves the provided error to the Err field of the writer.
-func (w *AnnounceResponseWriter) WriteError(err error) {
+func (w *AnnounceResponseWriter) WriteError(err error) error {
 	w.Err = err
+	return nil
 }
 
 // ScrapeResponseWriter implements an dango.ScrapeResponseWriter in the
 // simplest possible way.
 type ScrapeResponseWriter struct {
-	Resp *dango.ScrapeResponse
+	Resp dango.ScrapeResponse
 	Err  error
 }
 
 // WriteScrapeResponse saves the provided response to the Resp field of the
 // writer.
-func (w *ScrapeResponseWriter) WriteScrapeResponse(r *dango.ScrapeResponse) {
+func (w *ScrapeResponseWriter) WriteScrapeResponse(r dango.ScrapeResponse) error {
 	w.Resp = r
+	return nil
 }
 
 // WriteError saves the provided error to the Err field of the writer.
-func (w *ScrapeResponseWriter) WriteError(err error) {
+func (w *ScrapeResponseWriter) WriteError(err error) error {
 	w.Err = err
+	return nil
 }
